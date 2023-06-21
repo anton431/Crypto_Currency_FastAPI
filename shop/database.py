@@ -5,13 +5,12 @@ import config
 
 global_settings = config.get_settings()
 
-print(global_settings.asyncpg_url, type(global_settings.asyncpg_url))
 engine = create_async_engine(
     global_settings.asyncpg_url,
     future=True,
     echo=True,
 )
-print(engine, type(engine))
+
 Base = declarative_base()
 
 

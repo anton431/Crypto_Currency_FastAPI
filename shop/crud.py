@@ -1,14 +1,21 @@
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+import models
 from models import *
+from schemas import CitySchema
 
 
-async def get_biggest_cities(session: AsyncSession) -> list[City]:
-    result = await session.execute(select(City).order_by(City.population.desc()).limit(20))
-    return result.scalars().all()
+async def get_all_cities(session: AsyncSession) -> list[City]:
+    cities = session.query(models.City).all()
+    return cities
 
 
-def add_city(session: AsyncSession, name: str, population: int):
-    new_city = City(name=name, population=population)
+def add_city(session: AsyncSession, city: CitySchema):
+
+    new_city = models.City(name=city.name,
+                            population=city.population)
     session.add(new_city)
+    session.commit()
+    session.refresh(new_city)
+
     return new_city

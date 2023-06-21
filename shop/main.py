@@ -16,20 +16,18 @@ cli = typer.Typer()
 
 @cli.command()
 def db_init_models():
-    print("NO Done")
     asyncio.run(init_models())
-    print("Done")
 
 
 @app.get("/cities/biggest", response_model=list[CitySchema])
 async def get_biggest_cities(session: AsyncSession = Depends(get_session)):
-    cities = await crud.get_biggest_cities(session)
+    cities = await crud.get_all_cities(session)
     return [CitySchema(name=c.name, population=c.population) for c in cities]
 
 
 @app.post("/cities/")
 async def add_city(city: CitySchema, session: AsyncSession = Depends(get_session)):
-    city = crud.add_city(session, city.name, city.population)
+    city = crud.add_city(session, city)
     try:
         await session.commit()
         return city
