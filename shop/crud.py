@@ -52,8 +52,6 @@ async def get_user(session: AsyncSession, username: str):
     """
     user = await session.execute(select(UserDB).where(
         models.UserDB.username == username))
-    print("Attention")
-    print(user)
     if user:
         return user.scalars().first()
 
@@ -62,14 +60,11 @@ async def create_user(session: AsyncSession, user: UserCreate):
     """
     Create a new user by name and password.
     """
-    print("Fake_hashed")
     fake_hashed_password = await get_password_hash(user.password)
-    print("Create user")
     db_user = models.UserDB(username=user.username,
                             hashed_password=fake_hashed_password,
                             salary=40000)
     session.add(db_user)
-    print("Commit")
     await session.commit()
     await session.refresh(db_user)
 
@@ -113,7 +108,6 @@ async def get_current_user(
     and return the current user. If the token is invalid, return
     an HTTP error immediately.
     """
-    print("credentials_exception")
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -121,25 +115,16 @@ async def get_current_user(
     )
 
     try:
-        print("try")
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print("username")
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-        print("token_data")
-
         token_data = TokenData(username=username)
-        print("token_data")
-        print(token_data)
     except JWTError:
-        print("except")
         raise credentials_exception
-    print("user")
+
     user = get_user(session=session, username=token_data.username)
-    print("after_user")
     if user is None:
         raise credentials_exception
-    print("return user")
-    print(user)
+
     return await user

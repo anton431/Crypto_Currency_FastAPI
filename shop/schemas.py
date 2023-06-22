@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from datetime import date
 
 
 class CitySchema(BaseModel):
@@ -37,3 +36,6 @@ class UserCreate(BaseModel):
 
     class Config:
         orm_mode = True
+
+class UserUpdate(UserCreate):
+    pass

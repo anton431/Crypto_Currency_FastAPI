@@ -15,7 +15,7 @@ from exceptions import DuplicatedEntryError
 from database import init_models
 from database import get_session
 import crud
-from schemas import CitySchema
+from schemas import CitySchema, UserUpdate
 
 app = FastAPI()
 cli = typer.Typer()
@@ -83,6 +83,33 @@ async def read_users_me(
     return current_user
 
 
+@app.put("/users/me/update", response_model=schemas.User)
+async def users_me_update(
+        current_user: Annotated[schemas.UserInDB,
+                                Depends(crud.get_current_user)],
+        user: schemas.UserUpdate,
+        session: AsyncSession = Depends(get_session)):
+    """
+    Get the data of an authorized user
+    """
+    current_user.username = user.username
+    current_user.hashed_password = await crud.get_password_hash(user.password)
+    await session.commit()
+    return current_user
+
+@app.delete("/users/me/delete", response_model=schemas.User)
+async def users_me_delete(
+        current_user: Annotated[schemas.User,
+                                Depends(crud.get_current_user)],
+        session: AsyncSession = Depends(get_session)):
+    """
+    Get the data of an authorized user
+    """
+    await session.delete(current_user)
+    await session.commit()
+    return current_user
+
+
 @app.post("/users/", response_model=schemas.User)
 async def create_user(
         user: schemas.UserCreate,
@@ -99,13 +126,6 @@ async def create_user(
     result = await crud.create_user(session=session, user=user)
     return result
 
-    # user = crud.create_user(session=session, user=user)
-    # try:
-    #     await session.commit()
-    #     return user
-    # except IntegrityError as ex:
-    #     await session.rollback()
-    #     raise DuplicatedEntryError("User already registered")
 
 if __name__ == "__main__":
     cli()
