@@ -1,16 +1,24 @@
 # This is a sample Python script.
+from fastapi import Depends
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from crud import get_password_hash
+from database import get_session
+from models import UserDB
+from schemas import UserCreate
+
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+async def get_user(username: str,session: AsyncSession = Depends(get_session)):
+    """
+    Get the current user.
+    """
+    user = await session.execute(select(UserDB).where(
+        UserDB.username == username))
+    print(user.scalars().all())
 
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+get_user(username="Anton", session=Depends(get_session))
