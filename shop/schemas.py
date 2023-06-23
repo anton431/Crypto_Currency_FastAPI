@@ -45,3 +45,6 @@ class Currency(BaseModel):
     name: str
     price: float
     time: str
+
+    class Config:
+        orm_mode = True

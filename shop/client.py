@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_session
 from models import CurrencyDB
+from schemas import Currency
 
 currencies = ["BTC", "ETH"]
 
@@ -40,15 +41,10 @@ async def get_tickers(currency: str,
             print(timestamp, type(timestamp))
             time = datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
             new_ticker = CurrencyDB(name=name, price=price, time=time, user_id=current_user_id)
-            print(new_ticker.time)
-            print(new_ticker)
             db.add(new_ticker)
             await db.commit()
             await db.refresh(new_ticker)
+            return Currency(name=name, price=price, time=time)
 
-            return new_ticker
-
-# sessionDB: AsyncSession = Depends(get_session)
-# asyncio.run(get_tickers("BTC", sessionDB))
 
 

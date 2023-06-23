@@ -140,13 +140,16 @@ async def create_user(
     print(result)
     return result
 
-@app.get("/currency/") # response_model=list[schemas.Currency])
+@app.get("/currency/")
 async def add_tickers(
         current_user: Annotated[schemas.User,
                                 Depends(crud.get_current_user)],
         session: AsyncSession = Depends(get_session)):
-    for currency in currencies:
-        await get_tickers(currency, current_user.id, session)
+
+    tasks = [get_tickers(currency, current_user.id, session)
+             for currency in currencies]
+    return await asyncio.gather(*tasks)
+
 
 
 
