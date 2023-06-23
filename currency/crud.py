@@ -62,8 +62,7 @@ async def create_user(session: AsyncSession, user: UserCreate):
     """
     fake_hashed_password = await get_password_hash(user.password)
     db_user = models.UserDB(username=user.username,
-                            hashed_password=fake_hashed_password,
-                            salary=40000)
+                            hashed_password=fake_hashed_password)
     session.add(db_user)
     await session.commit()
     await session.refresh(db_user)

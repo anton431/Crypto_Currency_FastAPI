@@ -5,6 +5,7 @@ import aiohttp
 import asyncio
 
 from fastapi import Depends
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_session
@@ -45,6 +46,10 @@ async def get_tickers(currency: str,
             await db.commit()
             await db.refresh(new_ticker)
             return Currency(name=name, price=price, time=time)
+
+async def get_currencies(current_user_id: int, session: AsyncSession):
+    currencies = await session.execute(select(CurrencyDB).where(CurrencyDB.user_id==current_user_id))
+    return currencies.scalars().all()
 
 
 

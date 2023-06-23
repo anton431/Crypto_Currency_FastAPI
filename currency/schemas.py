@@ -21,7 +21,7 @@ class TokenData(BaseModel):
 class User(BaseModel):
     id: int
     username: str
-    salary: int | None = None
+    budget: int | None = None
 
     class Config:
         orm_mode = True

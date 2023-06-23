@@ -1,4 +1,6 @@
 import asyncio
+import sys
+
 import typer
 from datetime import timedelta
 from typing import Annotated
@@ -10,36 +12,38 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import Depends, FastAPI, HTTPException, status
 
 import schemas
-from client import currencies, get_tickers
+from client import currencies, get_tickers, get_currencies
 from config import ACCESS_TOKEN_EXPIRE_MINUTES
+from charts import generate_BTC_data
 from exceptions import DuplicatedEntryError
 from database import engine
 from database import get_session
 import crud
 from database import Base
 from schemas import CitySchema, UserUpdate
+from datetime import datetime
+from typing import Iterator
+import logging
+from fastapi import FastAPI
+from fastapi.requests import Request
+from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.templating import Jinja2Templates
+from starlette.responses import Response
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger(__name__)
+
+templates = Jinja2Templates(directory="templates")
 
 app = FastAPI()
 cli = typer.Typer()
 
-
-# @cli.command()
-# async def db_init_models():
-#     print("NO Done")
-#     asyncio.run(init_models())
-#     print("Done")
 
 
 if __name__ == "__main__":
     print("unicorn")
     uvicorn.run(app, host="localhost", port=8000)
 
-
-# if __name__ == "__main__":
-#     async def take_tamles():
-#         print("NoDone")
-#         await asyncio.run(init_models())
-#         print("Done")
 
 @app.get("/cities/biggest", response_model=list[CitySchema])
 async def get_biggest_cities(session: AsyncSession = Depends(get_session)):
@@ -149,6 +153,28 @@ async def add_tickers(
     tasks = [get_tickers(currency, current_user.id, session)
              for currency in currencies]
     return await asyncio.gather(*tasks)
+
+@app.get("/currency/user/me", response_model=list[schemas.Currency])
+async def get_tickers(
+        current_user: Annotated[schemas.User,
+                                Depends(crud.get_current_user)],
+        session: AsyncSession = Depends(get_session)):
+    tickers = await get_currencies(current_user.id,session)
+    return [schemas.Currency(name=ticker.name, price=ticker.price, time=ticker.time) for ticker in tickers]
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request) -> Response:
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/chart-data")
+async def chart_data(request: Request,
+                     session: AsyncSession = Depends(get_session)
+                     ) -> StreamingResponse:
+    response = StreamingResponse(generate_BTC_data(request, session), media_type="text/event-stream")
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["X-Accel-Buffering"] = "no"
+    return response
 
 
 
