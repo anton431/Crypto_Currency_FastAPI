@@ -10,23 +10,36 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import Depends, FastAPI, HTTPException, status
 
 import schemas
+from client import currencies, get_tickers
 from config import ACCESS_TOKEN_EXPIRE_MINUTES
 from exceptions import DuplicatedEntryError
-from database import init_models
+from database import engine
 from database import get_session
 import crud
+from database import Base
 from schemas import CitySchema, UserUpdate
 
 app = FastAPI()
 cli = typer.Typer()
 
+
+# @cli.command()
+# async def db_init_models():
+#     print("NO Done")
+#     asyncio.run(init_models())
+#     print("Done")
+
+
 if __name__ == "__main__":
+    print("unicorn")
     uvicorn.run(app, host="localhost", port=8000)
 
-@cli.command()
-def db_init_models():
-    asyncio.run(init_models())
 
+# if __name__ == "__main__":
+#     async def take_tamles():
+#         print("NoDone")
+#         await asyncio.run(init_models())
+#         print("Done")
 
 @app.get("/cities/biggest", response_model=list[CitySchema])
 async def get_biggest_cities(session: AsyncSession = Depends(get_session)):
@@ -124,9 +137,17 @@ async def create_user(
         raise HTTPException(status_code=400,detail="User already registered")
     print("create")
     result = await crud.create_user(session=session, user=user)
+    print(result)
     return result
 
+@app.get("/currency/") # response_model=list[schemas.Currency])
+async def add_tickers(
+        current_user: Annotated[schemas.User,
+                                Depends(crud.get_current_user)],
+        session: AsyncSession = Depends(get_session)):
+    for currency in currencies:
+        await get_tickers(currency, current_user.id, session)
 
-if __name__ == "__main__":
-    cli()
+
+
 

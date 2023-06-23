@@ -19,6 +19,7 @@ class TokenData(BaseModel):
 
 
 class User(BaseModel):
+    id: int
     username: str
     salary: int | None = None
 
@@ -39,3 +40,8 @@ class UserCreate(BaseModel):
 
 class UserUpdate(UserCreate):
     pass
+
+class Currency(BaseModel):
+    name: str
+    price: float
+    time: str
