@@ -17,9 +17,10 @@ BTC = "BTC"
 
 async def generate_BTC_data(session: AsyncSession) -> Iterator[str]:
     """
-    ......
+    Generates data for the BTC chart
     """
-    currencies = await session.execute(select(CurrencyDB).where(CurrencyDB.name == BTC))
+    currencies = await session.execute(select(CurrencyDB).
+                                       where(CurrencyDB.name == BTC))
     currencies = currencies.scalars().all()
     for currency in currencies:
         json_data = json.dumps(

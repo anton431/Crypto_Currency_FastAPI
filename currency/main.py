@@ -1,9 +1,8 @@
 import typer
 from datetime import timedelta
 from typing import Annotated
-
 import asyncio
-from asyncio import sleep
+
 import uvicorn
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordRequestForm
@@ -14,7 +13,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.responses import Response
 
 import schemas
-from client import get_tickers, get_currencies
+from client import get_ticker, get_currencies
 from config import ACCESS_TOKEN_EXPIRE_MINUTES, currencies
 from charts import generate_BTC_data
 from database import get_session
@@ -113,11 +112,11 @@ async def create_user(
 
 
 @app.get("/currency/")
-async def get_now_tickers(
+async def get_current_tickers(
         current_user: Annotated[schemas.User,
                                 Depends(crud.get_current_user)],
         session: AsyncSession = Depends(get_session)):
-    tasks = [get_tickers(currency, session)
+    tasks = [get_ticker(currency, session)
              for currency in currencies]
     result = await asyncio.gather(*tasks)
 
@@ -127,6 +126,9 @@ async def get_now_tickers(
 @app.get("/currencies/", response_model=list[schemas.Currency])
 async def get_all_tickers(
         session: AsyncSession = Depends(get_session)):
+    """
+    Get all tickers of currencies for all time
+    """
     tickers = await get_currencies(session)
     return [schemas.Currency(name=ticker.name, price=ticker.price,
                              time=ticker.time) for ticker in tickers]
@@ -134,14 +136,20 @@ async def get_all_tickers(
 
 @app.get("/BTC", response_class=HTMLResponse)
 async def chart_BTC(request: Request) -> Response:
+    """
+    Builds a BTC chart for all time
+    """
     return templates.TemplateResponse("index.html",
                                       {"request": request})
 
 
-@app.get("/chart-data")
-async def chart_data(
+@app.get("/chart-data/BTC")
+async def chart_data_BTC(
         session: AsyncSession = Depends(
             get_session)) -> StreamingResponse:
+    """
+    Outputs data for the BTC chart
+    """
     response = StreamingResponse(generate_BTC_data(session),
                                  media_type="text/event-stream")
     response.headers["Cache-Control"] = "no-cache"
@@ -153,18 +161,24 @@ ON_OFF = "off"
 
 
 async def get_tickers_do(session):
+    """
+    Get tickets from derbit.com and writes them to the database every 5 minutes
+    """
     while ON_OFF == "on":
-        await sleep(300)
-        tasks = [get_tickers(currency, session)
+        await asyncio.sleep(300)
+        tasks = [get_ticker(currency, session)
                  for currency in currencies]
         await asyncio.gather(*tasks)
         await session.commit()
 
 
-@app.get("/sched/{on_off}")
-async def scheduler_func(on_off: str,
-                         background_task: BackgroundTasks,
-                         session: AsyncSession = Depends(get_session)):
+@app.get("/add_tasks/{on_off}")
+async def scheduler_tasks(on_off: str,
+                          background_task: BackgroundTasks,
+                          session: AsyncSession = Depends(get_session)):
+    """
+    Enables and disables the function "get_tickers_do"
+    """
     global ON_OFF
     if ON_OFF != "on" and on_off == "on":
         background_task.add_task(get_tickers_do, session=session)

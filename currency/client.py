@@ -10,6 +10,9 @@ from schemas import Currency
 
 
 def take_msg(currency):
+    """
+    Generates a message for test.deribit.com
+    """
     msg = {
         "jsonrpc": "2.0",
         "id": 1,
@@ -21,9 +24,11 @@ def take_msg(currency):
     return json.dumps(msg)
 
 
-async def get_tickers(currency: str,
-                      db: AsyncSession):
-
+async def get_ticker(currency: str,
+                     db: AsyncSession):
+    """
+    Get ticker of the specified currency
+    """
     async with aiohttp.ClientSession() as session:
         async with session.post('https://test.deribit.com/api/v2',
                                 data=take_msg(currency)) as resp:
@@ -41,6 +46,9 @@ async def get_tickers(currency: str,
             return Currency(name=name, price=price, time=time)
 
 async def get_currencies(session: AsyncSession):
+    """
+    Get all tickers of currencies for all time
+    """
     currencies = await session.execute(select(CurrencyDB))
     return currencies.scalars().all()
 
