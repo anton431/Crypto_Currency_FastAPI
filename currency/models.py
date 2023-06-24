@@ -9,7 +9,6 @@ class CurrencyDB(Base):
     name: Mapped[str]
     price: Mapped[float]
     time: Mapped[str]
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
 
 class CityDB(Base):
@@ -27,4 +26,3 @@ class UserDB(Base):
     username: Mapped[str] = mapped_column(unique=True)
     hashed_password: Mapped[str]
     budget: Mapped[int] = mapped_column(default=0)
-    bs: Mapped[list[CurrencyDB]] = relationship()

@@ -28,7 +28,6 @@ def take_msg(currency):
 
 
 async def get_tickers(currency: str,
-                    current_user_id,
                       db: AsyncSession):
 
     async with aiohttp.ClientSession() as session:
@@ -41,13 +40,13 @@ async def get_tickers(currency: str,
             timestamp: int = ticker.get('result').get('timestamp')//1000
             print(timestamp, type(timestamp))
             time = datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
-            new_ticker = CurrencyDB(name=name, price=price, time=time, user_id=current_user_id)
+            new_ticker = CurrencyDB(name=name, price=price, time=time)
             db.add(new_ticker)
 
             return Currency(name=name, price=price, time=time)
 
-async def get_currencies(current_user_id: int, session: AsyncSession):
-    currencies = await session.execute(select(CurrencyDB).where(CurrencyDB.user_id==current_user_id))
+async def get_currencies(session: AsyncSession):
+    currencies = await session.execute(select(CurrencyDB))
     return currencies.scalars().all()
 
 

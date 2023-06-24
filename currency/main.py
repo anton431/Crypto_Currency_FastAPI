@@ -1,11 +1,13 @@
 import asyncio
 import sys
+from asyncio import sleep
 
 import typer
 from datetime import timedelta
 from typing import Annotated
 
 import uvicorn
+from apscheduler.schedulers.blocking import BlockingScheduler
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from fastapi.security import OAuth2PasswordRequestForm
@@ -24,11 +26,14 @@ from schemas import CitySchema, UserUpdate
 from datetime import datetime
 from typing import Iterator
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from starlette.responses import Response
+from scheduler import app as app_rocketry
+
+import schedule
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -146,23 +151,18 @@ async def create_user(
 
 @app.get("/currency/")
 async def add_tickers(
-        current_user: Annotated[schemas.User,
-                                Depends(crud.get_current_user)],
         session: AsyncSession = Depends(get_session)):
 
-    tasks = [get_tickers(currency, current_user.id, session)
+    tasks = [get_tickers(currency, session)
              for currency in currencies]
     result = await asyncio.gather(*tasks)
 
     await session.commit()
-    # await db.refresh(new_ticker)
     return result
 @app.get("/currency/user/me", response_model=list[schemas.Currency])
 async def get_all_tickers(
-        current_user: Annotated[schemas.User,
-                                Depends(crud.get_current_user)],
         session: AsyncSession = Depends(get_session)):
-    tickers = await get_currencies(current_user.id,session)
+    tickers = await get_currencies(session)
     return [schemas.Currency(name=ticker.name, price=ticker.price, time=ticker.time) for ticker in tickers]
 
 @app.get("/", response_class=HTMLResponse)
@@ -179,7 +179,56 @@ async def chart_data(request: Request,
     response.headers["X-Accel-Buffering"] = "no"
     return response
 
+# session = app_rocketry.session
+# @app.post("/my-route")
+# async def manipulate_session():
+
+# class Server(uvicorn.Server):
+#     """Customized uvicorn.Server
+#
+#     Uvicorn server overrides signals and we need to include
+#     Rocketry to the signals."""
+#
+#     def handle_exit(self, sig: int, frame) -> None:
+#         app_rocketry.session.shut_down()
+#         return super().handle_exit(sig, frame)
+#
+#
+# async def main():
+#     "Run Rocketry and FastAPI"
+#     server = Server(
+#         config=uvicorn.Config(app, workers=1, loop="asyncio"))
+#
+#     api = asyncio.create_task(server.serve())
+#     sched = asyncio.create_task(app_rocketry.serve())
+#
+#     await asyncio.wait([sched, api])
+#
+#
+# if __name__ == "__main__":
+#     # Print Rocketry's logs to terminal
+#     logger = logging.getLogger("rocketry.task")
+#     logger.addHandler(logging.StreamHandler())
+#
+#     # Run both applications
+#     asyncio.run(main())
+ON_OFF = "off"
+async def get_tickers_do(session):
+    while ON_OFF == "on":
+        await sleep(5)
+        tasks = [get_tickers(currency, session)
+                 for currency in currencies]
+        await asyncio.gather(*tasks)
+        await session.commit()
 
 
+@app.get("/sched/{on_off}")
+async def scheduler_func(on_off: str,
+                        background_task: BackgroundTasks,
+                        session: AsyncSession = Depends(get_session)):
+    global ON_OFF
+    if ON_OFF != "on" and on_off == "on":
+        background_task.add_task(get_tickers_do, session=session)
+    ON_OFF = on_off
 
-
+    return {"result": "done"}
