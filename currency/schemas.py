@@ -1,14 +1,6 @@
 from pydantic import BaseModel
 
 
-# class CitySchema(BaseModel):
-#     name: str
-#     population: int
-#
-#     class Config:
-#         orm_mode = True
-
-
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -38,8 +30,10 @@ class UserCreate(BaseModel):
     class Config:
         orm_mode = True
 
+
 class UserUpdate(UserCreate):
     pass
+
 
 class Currency(BaseModel):
     name: str

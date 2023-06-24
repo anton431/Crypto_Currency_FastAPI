@@ -1,7 +1,6 @@
 import os
 
 from functools import lru_cache
-
 from pydantic import BaseSettings, PostgresDsn
 from dotenv import load_dotenv, find_dotenv
 
@@ -18,6 +17,7 @@ class Settings(BaseSettings):
         port=os.getenv("POSTGRES_PORT"),
         path=f"/{os.getenv('POSTGRES_DB') or ''}",
     )
+    SECRET_KEY = os.getenv("SECRET_KEY")
 
 
 @lru_cache
@@ -28,7 +28,6 @@ def get_settings():
 settings = get_settings()
 
 
-SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-ON_OFF = "off"
+currencies = ["BTC", "ETH"]

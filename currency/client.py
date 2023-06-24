@@ -2,17 +2,11 @@ import json
 from datetime import datetime
 
 import aiohttp
-import asyncio
-
-from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database import get_session
 from models import CurrencyDB
 from schemas import Currency
-
-currencies = ["BTC", "ETH"]
 
 
 def take_msg(currency):
@@ -38,9 +32,10 @@ async def get_tickers(currency: str,
             name: str = ticker.get("result").get("instrument_name").split('-')[0]
             price: float = ticker.get('result').get('index_price')
             timestamp: int = ticker.get('result').get('timestamp')//1000
-            print(timestamp, type(timestamp))
+
             time = datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
             new_ticker = CurrencyDB(name=name, price=price, time=time)
+
             db.add(new_ticker)
 
             return Currency(name=name, price=price, time=time)

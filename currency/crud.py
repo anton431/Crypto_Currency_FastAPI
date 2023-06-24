@@ -1,35 +1,20 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from datetime import datetime, timedelta
-from typing import Annotated, Union, Any, Sequence
+from typing import Annotated, Union
 
 from sqlalchemy import select
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
-
-import models
-from database import get_session
-from models import *
-from schemas import TokenData, UserCreate
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 
-from config import SECRET_KEY, ALGORITHM
-
-
+import schemas
+import models
+import database
+import config
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# async def get_biggest_cities(session: AsyncSession):
-#     cities = await session.execute(select(CityDB).order_by(CityDB.population.desc()).limit(5))
-#     return cities.scalars().all()
-#
-#
-# def add_city(session: AsyncSession, city: CitySchema):
-#     new_city = CityDB(name=city.name, population=city.population)
-#     session.add(new_city)
-#     return new_city
 
 
 def verify_password(plain_password, hashed_password):
@@ -50,13 +35,13 @@ async def get_user(session: AsyncSession, username: str):
     """
     Get the current user.
     """
-    user = await session.execute(select(UserDB).where(
+    user = await session.execute(select(models.UserDB).where(
         models.UserDB.username == username))
     if user:
         return user.scalars().first()
 
 
-async def create_user(session: AsyncSession, user: UserCreate):
+async def create_user(session: AsyncSession, user: schemas.UserCreate):
     """
     Create a new user by name and password.
     """
@@ -70,7 +55,8 @@ async def create_user(session: AsyncSession, user: UserCreate):
     return db_user
 
 
-async def authenticate_user(session: AsyncSession, username: str, password: str):
+async def authenticate_user(session: AsyncSession, username: str,
+                            password: str):
     """
     Authenticate and return the user.
     """
@@ -94,14 +80,15 @@ def create_access_token(data: dict,
     else:
         expire = datetime.utcnow() + timedelta(minutes=5)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, config.settings.SECRET_KEY,
+                             algorithm=config.ALGORITHM)
 
     return encoded_jwt
 
 
 async def get_current_user(
         token: Annotated[str, Depends(oauth2_scheme)],
-        session: AsyncSession = Depends(get_session)):
+        session: AsyncSession = Depends(database.get_session)):
     """
     Get the JWT tokens, Decrypt the received token, verify it,
     and return the current user. If the token is invalid, return
@@ -114,11 +101,12 @@ async def get_current_user(
     )
 
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, config.settings.SECRET_KEY,
+                             algorithms=[config.ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
+        token_data = schemas.TokenData(username=username)
     except JWTError:
         raise credentials_exception
 
