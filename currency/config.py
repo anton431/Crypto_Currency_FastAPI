@@ -31,3 +31,4 @@ settings = get_settings()
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ON_OFF = "off"

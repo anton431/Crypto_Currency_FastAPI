@@ -1,12 +1,12 @@
 from pydantic import BaseModel
 
 
-class CitySchema(BaseModel):
-    name: str
-    population: int
-
-    class Config:
-        orm_mode = True
+# class CitySchema(BaseModel):
+#     name: str
+#     population: int
+#
+#     class Config:
+#         orm_mode = True
 
 
 class Token(BaseModel):

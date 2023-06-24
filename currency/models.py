@@ -11,12 +11,12 @@ class CurrencyDB(Base):
     time: Mapped[str]
 
 
-class CityDB(Base):
-    __tablename__ = "cities"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(unique=True)
-    population: Mapped[int]
+# class CityDB(Base):
+#     __tablename__ = "cities"
+#
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     name: Mapped[str] = mapped_column(unique=True)
+#     population: Mapped[int]
 
 
 class UserDB(Base):

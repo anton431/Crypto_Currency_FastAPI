@@ -10,7 +10,7 @@ from fastapi import Depends, HTTPException, status
 import models
 from database import get_session
 from models import *
-from schemas import CitySchema, TokenData, UserCreate
+from schemas import TokenData, UserCreate
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 
@@ -21,15 +21,15 @@ from config import SECRET_KEY, ALGORITHM
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-async def get_biggest_cities(session: AsyncSession):
-    cities = await session.execute(select(CityDB).order_by(CityDB.population.desc()).limit(5))
-    return cities.scalars().all()
-
-
-def add_city(session: AsyncSession, city: CitySchema):
-    new_city = CityDB(name=city.name, population=city.population)
-    session.add(new_city)
-    return new_city
+# async def get_biggest_cities(session: AsyncSession):
+#     cities = await session.execute(select(CityDB).order_by(CityDB.population.desc()).limit(5))
+#     return cities.scalars().all()
+#
+#
+# def add_city(session: AsyncSession, city: CitySchema):
+#     new_city = CityDB(name=city.name, population=city.population)
+#     session.add(new_city)
+#     return new_city
 
 
 def verify_password(plain_password, hashed_password):
