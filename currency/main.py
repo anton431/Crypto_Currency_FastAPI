@@ -152,10 +152,13 @@ async def add_tickers(
 
     tasks = [get_tickers(currency, current_user.id, session)
              for currency in currencies]
-    return await asyncio.gather(*tasks)
+    result = await asyncio.gather(*tasks)
 
+    await session.commit()
+    # await db.refresh(new_ticker)
+    return result
 @app.get("/currency/user/me", response_model=list[schemas.Currency])
-async def get_tickers(
+async def get_all_tickers(
         current_user: Annotated[schemas.User,
                                 Depends(crud.get_current_user)],
         session: AsyncSession = Depends(get_session)):

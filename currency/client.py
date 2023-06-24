@@ -43,8 +43,7 @@ async def get_tickers(currency: str,
             time = datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
             new_ticker = CurrencyDB(name=name, price=price, time=time, user_id=current_user_id)
             db.add(new_ticker)
-            await db.commit()
-            await db.refresh(new_ticker)
+
             return Currency(name=name, price=price, time=time)
 
 async def get_currencies(current_user_id: int, session: AsyncSession):
