@@ -143,7 +143,7 @@ async def chart_BTC(request: Request) -> Response:
                                       {"request": request})
 
 
-@app.get("/chart-data/BTC")
+@app.get("/chart-data")
 async def chart_data_BTC(
         session: AsyncSession = Depends(
             get_session)) -> StreamingResponse:
