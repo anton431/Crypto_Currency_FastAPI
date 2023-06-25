@@ -17,6 +17,14 @@ class Settings(BaseSettings):
         port=os.getenv("POSTGRES_PORT"),
         path=f"/{os.getenv('POSTGRES_DB') or ''}",
     )
+    test_asyncpg_url: PostgresDsn = PostgresDsn.build(
+        scheme="postgresql+asyncpg",
+        user=os.getenv("POSTGRES_USER_TEST"),
+        password=os.getenv("POSTGRES_PASSWORD_TEST"),
+        host=os.getenv("POSTGRES_HOST_TEST"),
+        port=os.getenv("POSTGRES_PORT_TEST"),
+        path=f"/{os.getenv('POSTGRES_DB_TEST') or ''}",
+    )
     SECRET_KEY = os.getenv("SECRET_KEY")
 
 
