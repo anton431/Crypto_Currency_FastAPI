@@ -88,7 +88,7 @@ def create_access_token(data: dict,
 
 async def get_current_user(
         token: Annotated[str, Depends(oauth2_scheme)],
-        session: AsyncSession = Depends(database.get_session)) -> schemas.UserInDB:
+        session: AsyncSession = Depends(database.get_async_session)) -> schemas.UserInDB:
     """
     Get the JWT tokens, Decrypt the received token, verify it,
     and return the current user. If the token is invalid, return

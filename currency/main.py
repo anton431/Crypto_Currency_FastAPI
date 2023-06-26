@@ -16,7 +16,7 @@ import schemas
 from client import get_ticker, get_currencies
 from config import ACCESS_TOKEN_EXPIRE_MINUTES, currencies
 from charts import generate_BTC_data
-from database import get_session, get_aiohttp_session
+from database import get_async_session, get_aiohttp_session
 import crud
 
 templates = Jinja2Templates(directory="templates")
@@ -31,7 +31,7 @@ if __name__ == "__main__":
 @app.post("/token", response_model=schemas.Token)
 async def login_for_access_token(
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-        session: AsyncSession = Depends(get_session)):
+        session: AsyncSession = Depends(get_async_session)):
     """
     Get a custom token from the database using username from
     the form field. If there is no such user, return the error
@@ -70,7 +70,7 @@ async def users_me_update(
         current_user: Annotated[schemas.UserInDB,
                                 Depends(crud.get_current_user)],
         user: schemas.UserUpdate,
-        session: AsyncSession = Depends(get_session)):
+        session: AsyncSession = Depends(get_async_session)):
     """
     Get the data of an authorized user
     """
@@ -85,7 +85,7 @@ async def users_me_update(
 async def users_me_delete(
         current_user: Annotated[schemas.User,
                                 Depends(crud.get_current_user)],
-        session: AsyncSession = Depends(get_session)):
+        session: AsyncSession = Depends(get_async_session)):
     """
     Get the data of an authorized user
     """
@@ -97,7 +97,7 @@ async def users_me_delete(
 @app.post("/users/", response_model=schemas.User)
 async def create_user(
         user: schemas.UserCreate,
-        session: AsyncSession = Depends(get_session)):
+        session: AsyncSession = Depends(get_async_session)):
     """
     Creating a user by name and password
     """
@@ -116,7 +116,7 @@ async def get_current_tickers(
         current_user: Annotated[schemas.User,
                                 Depends(crud.get_current_user)],
         aiohttp_session: AsyncSession = Depends(get_aiohttp_session),
-        session: AsyncSession = Depends(get_session)):
+        session: AsyncSession = Depends(get_async_session)):
     """
     Get current tickers BTC and ETH  from derbit.com
     """
@@ -129,7 +129,7 @@ async def get_current_tickers(
 
 @app.get("/currencies/", response_model=list[schemas.Currency])
 async def get_all_tickers(
-        session: AsyncSession = Depends(get_session)):
+        session: AsyncSession = Depends(get_async_session)):
     """
     Get all tickers of currencies for all time
     """
@@ -149,8 +149,8 @@ async def chart_BTC(request: Request) -> Response:
 
 @app.get("/chart-data")
 async def chart_data_BTC(request: Request,
-        session: AsyncSession = Depends(
-            get_session)) -> StreamingResponse:
+                         session: AsyncSession = Depends(
+            get_async_session)) -> StreamingResponse:
     """
     Outputs data for the BTC chart
     """
@@ -176,7 +176,7 @@ async def get_tickers_do(session, aiohttp_session) -> None:
 @app.post("/add_currencies/")
 async def scheduler_tasks(background_task: BackgroundTasks,
                           aiohttp_session: AsyncSession = Depends(get_aiohttp_session),
-                          session: AsyncSession = Depends(get_session)) -> dict[str, str]:
+                          session: AsyncSession = Depends(get_async_session)) -> dict[str, str]:
     """
     Enables and disables the function "get_tickers_do"
     """
