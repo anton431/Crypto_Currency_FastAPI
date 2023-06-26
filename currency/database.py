@@ -21,14 +21,8 @@ SessionLocal = async_sessionmaker(
 
 # Dependency
 async def get_session() -> AsyncSession:
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        await db.close()
+    async with SessionLocal() as session:
+        yield session
 
 
 

@@ -39,7 +39,8 @@ async def get_ticker(currency: str,
             timestamp: int = ticker.get('result').get('timestamp')//1000
 
             time = datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
-            new_ticker = CurrencyDB(name=name, price=price, time=time)
+            date_time_obj = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
+            new_ticker = CurrencyDB(name=name, price=price, time=date_time_obj)
 
             db.add(new_ticker)
 

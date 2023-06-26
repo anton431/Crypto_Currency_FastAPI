@@ -172,7 +172,7 @@ async def get_tickers_do(session):
         await session.commit()
 
 
-@app.get("/add_tasks/{on_off}")
+@app.post("/add_tasks/{on_off}")
 async def scheduler_tasks(on_off: str,
                           background_task: BackgroundTasks,
                           session: AsyncSession = Depends(get_session)):

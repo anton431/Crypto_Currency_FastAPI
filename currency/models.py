@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.orm import Mapped, mapped_column
 
 from database import Base
@@ -9,7 +11,7 @@ class CurrencyDB(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     price: Mapped[float]
-    time: Mapped[str]
+    time: Mapped[datetime]
 
 
 class UserDB(Base):

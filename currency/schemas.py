@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -38,7 +40,7 @@ class UserUpdate(UserCreate):
 class Currency(BaseModel):
     name: str
     price: float
-    time: str
+    time: datetime
 
     class Config:
         orm_mode = True
