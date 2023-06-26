@@ -17,21 +17,21 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def verify_password(plain_password, hashed_password):
+def verify_password(plain_password, hashed_password) -> bool:
     """
     Check whether the received password matches the saved hash.
     """
     return pwd_context.verify(plain_password, hashed_password)
 
 
-async def get_password_hash(password):
+async def get_password_hash(password) -> str:
     """
     Hash the password coming from the user.
     """
     return pwd_context.hash(password)
 
 
-async def get_user(session: AsyncSession, username: str):
+async def get_user(session: AsyncSession, username: str) -> schemas.UserInDB:
     """
     Get the current user.
     """
@@ -41,7 +41,7 @@ async def get_user(session: AsyncSession, username: str):
         return user.scalars().first()
 
 
-async def create_user(session: AsyncSession, user: schemas.UserCreate):
+async def create_user(session: AsyncSession, user: schemas.UserCreate) -> models.UserDB:
     """
     Create a new user by name and password.
     """
@@ -56,7 +56,7 @@ async def create_user(session: AsyncSession, user: schemas.UserCreate):
 
 
 async def authenticate_user(session: AsyncSession, username: str,
-                            password: str):
+                            password: str) -> bool | schemas.UserInDB:
     """
     Authenticate and return the user.
     """
@@ -70,7 +70,7 @@ async def authenticate_user(session: AsyncSession, username: str,
 
 
 def create_access_token(data: dict,
-                        expires_delta: Union[timedelta, None] = None):
+                        expires_delta: Union[timedelta, None] = None) -> str:
     """
     Creating a token with an expiration time of 5 minutes.
     """
@@ -88,7 +88,7 @@ def create_access_token(data: dict,
 
 async def get_current_user(
         token: Annotated[str, Depends(oauth2_scheme)],
-        session: AsyncSession = Depends(database.get_session)):
+        session: AsyncSession = Depends(database.get_session)) -> schemas.UserInDB:
     """
     Get the JWT tokens, Decrypt the received token, verify it,
     and return the current user. If the token is invalid, return

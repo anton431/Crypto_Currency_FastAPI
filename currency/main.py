@@ -16,7 +16,7 @@ import schemas
 from client import get_ticker, get_currencies
 from config import ACCESS_TOKEN_EXPIRE_MINUTES, currencies
 from charts import generate_BTC_data
-from database import get_session
+from database import get_session, get_aiohttp_session
 import crud
 
 templates = Jinja2Templates(directory="templates")
@@ -111,12 +111,16 @@ async def create_user(
     return result
 
 
-@app.get("/currency/")
+@app.get("/currency/", response_model=list[schemas.Currency])
 async def get_current_tickers(
         current_user: Annotated[schemas.User,
                                 Depends(crud.get_current_user)],
+        aiohttp_session: AsyncSession = Depends(get_aiohttp_session),
         session: AsyncSession = Depends(get_session)):
-    tasks = [get_ticker(currency, session)
+    """
+    Get current tickers BTC and ETH  from derbit.com
+    """
+    tasks = [get_ticker(currency, aiohttp_session , session)
              for currency in currencies]
     result = await asyncio.gather(*tasks)
 
@@ -144,7 +148,7 @@ async def chart_BTC(request: Request) -> Response:
 
 
 @app.get("/chart-data")
-async def chart_data_BTC(
+async def chart_data_BTC(request: Request,
         session: AsyncSession = Depends(
             get_session)) -> StreamingResponse:
     """
@@ -157,33 +161,24 @@ async def chart_data_BTC(
     return response
 
 
-ON_OFF = "off"
-
-
-async def get_tickers_do(session):
+async def get_tickers_do(session, aiohttp_session) -> None:
     """
     Get tickets from derbit.com and writes them to the database every 5 minutes
     """
-    while ON_OFF == "on":
+    while True:
         await asyncio.sleep(300)
-        tasks = [get_ticker(currency, session)
+        tasks = [get_ticker(currency, aiohttp_session, session)
                  for currency in currencies]
         await asyncio.gather(*tasks)
         await session.commit()
 
 
-@app.post("/add_tasks/{on_off}")
-async def scheduler_tasks(on_off: str,
-                          background_task: BackgroundTasks,
-                          session: AsyncSession = Depends(get_session)):
+@app.post("/add_currencies/")
+async def scheduler_tasks(background_task: BackgroundTasks,
+                          aiohttp_session: AsyncSession = Depends(get_aiohttp_session),
+                          session: AsyncSession = Depends(get_session)) -> dict[str, str]:
     """
     Enables and disables the function "get_tickers_do"
     """
-    global ON_OFF
-    if ON_OFF != "on" and on_off == "on":
-        background_task.add_task(get_tickers_do, session=session)
-        ON_OFF = on_off
-    if on_off != "on":
-        ON_OFF = "off"
-
-    return {"result": ON_OFF}
+    background_task.add_task(get_tickers_do, aiohttp_session=aiohttp_session, session=session)
+    return {"result": "OK"}

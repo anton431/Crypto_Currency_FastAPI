@@ -1,3 +1,4 @@
+import aiohttp
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
@@ -11,6 +12,7 @@ engine = create_async_engine(
     echo=True,
 )
 
+
 class Base(DeclarativeBase):
     pass
 
@@ -19,10 +21,13 @@ SessionLocal = async_sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False,
 )
 
+
 # Dependency
 async def get_session() -> AsyncSession:
     async with SessionLocal() as session:
         yield session
 
 
-
+async def get_aiohttp_session() -> AsyncSession:
+    async with aiohttp.ClientSession() as aiohttp_session:
+        yield aiohttp_session
