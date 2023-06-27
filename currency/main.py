@@ -111,7 +111,7 @@ async def create_user(
     return result
 
 
-@app.get("/currency/", response_model=list[schemas.Currency])
+@app.post("/currency/", response_model=list[schemas.Currency])
 async def get_current_tickers(
         current_user: Annotated[schemas.User,
                                 Depends(crud.get_current_user)],
