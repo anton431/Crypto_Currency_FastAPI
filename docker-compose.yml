@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres13
+    restart: always
+    volumes:
+      - db:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_PASSWORD: 777jon777
+  web:
+    build: .
+    command:  bash -c "cd currency && 
+              yoyo apply --database postgresql://postgres:777jon777@postgres:5432/postgres migrations -b &&
+              uvicorn main:app --host 0.0.0.0 --reload "
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/usr/src/DataGo_FastAPI/
+    env_file:
+      - ./.env-non-dev
+    depends_on:
+      - postgres
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: demo-pgadmin-4
+    depends_on:
+      - postgres
+    ports:
+      - "5051:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+      PGADMIN_DEFAULT_PASSWORD: root
+    restart: always
+
+volumes:
+  db:
+    driver: local
