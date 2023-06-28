@@ -49,7 +49,6 @@ git clone https://github.com/anton431/jwt_token_FastAPI.git
 pip install -r requirements.txt
 ```
 3. Установите пароль в docker-compose в перемнной POSTGRES_PASSWORD, а так же в bash команде:
-
 4. Сборка и запуск:
 ```
 docker-compose build
