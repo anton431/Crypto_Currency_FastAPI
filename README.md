@@ -26,15 +26,15 @@ git clone https://github.com/anton431/jwt_token_FastAPI.git
 ```
 pip install -r requirements.txt
 ```
-3. Переходим в директорию currency и проводи миграции:
+3. Перейдите в директорию currency и проводи миграции:
 ```
 yoyo apply --database postgres://postgres:dbpass@localhost:5432/db ./migrations -b
 ```
-4. запуск приложения:
+4. Запуск приложения:
 ```
 uvicorn main:app --reload
 ```
-5. запуск тестов:
+5. Запуск тестов:
 ```
 pytest -v -s tests\tests.py
 ```
