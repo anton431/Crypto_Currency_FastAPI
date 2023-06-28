@@ -166,7 +166,7 @@ async def get_tickers_do(session, aiohttp_session) -> None:
     Get tickets from derbit.com and writes them to the database every 5 minutes
     """
     while True:
-        await asyncio.sleep(300)
+        await asyncio.sleep(5*60)
         tasks = [get_ticker(currency, aiohttp_session, session)
                  for currency in currencies]
         await asyncio.gather(*tasks)
@@ -174,9 +174,9 @@ async def get_tickers_do(session, aiohttp_session) -> None:
 
 
 @app.post("/add_currencies/")
-async def scheduler_tasks(background_task: BackgroundTasks,
-                          aiohttp_session: AsyncSession = Depends(get_aiohttp_session),
-                          session: AsyncSession = Depends(get_async_session)) -> dict[str, str]:
+async def get_tickers_every_5_minutes(background_task: BackgroundTasks,
+                                      aiohttp_session: AsyncSession = Depends(get_aiohttp_session),
+                                      session: AsyncSession = Depends(get_async_session)) -> dict[str, str]:
     """
     Enables and disables the function "get_tickers_do"
     """
