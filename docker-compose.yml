@@ -12,7 +12,7 @@ services:
   web:
     build: .
     command:  bash -c "cd currency && 
-              yoyo apply --database postgresql://postgres:777jon777@postgres:5432/postgres migrations -b &&
+              yoyo apply --database postgresql://postgres:postgres@postgres:5432/postgres migrations -b &&
               uvicorn main:app --host 0.0.0.0 --reload "
     ports:
       - 8000:8000
