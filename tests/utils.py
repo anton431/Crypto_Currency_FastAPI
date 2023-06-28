@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 
-def user_authentication_headers(client: TestClient, data):
+def user_authentication_headers(client: TestClient, data) -> dict[str, str]:
     response_token = client.post("/token/", data=data, headers={
         'Content-Type': 'application/x-www-form-urlencoded',
         'accept': 'application/json'})
@@ -13,7 +13,7 @@ def user_authentication_headers(client: TestClient, data):
 
 
 def authentication_token_from_username(client: TestClient,
-                                       username: str):
+                                       username: str) -> dict[str, str]:
     """
     Register user and return a valid token for the user with given username.
     """
