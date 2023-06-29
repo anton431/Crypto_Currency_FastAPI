@@ -26,7 +26,7 @@ git clone https://github.com/anton431/jwt_token_FastAPI.git
 ```
 pip install -r requirements.txt
 ```
-3. Перейдите в директорию currency и проводи миграции:
+3. Перейдите в директорию currency и проведите миграции:
 ```
 yoyo apply --database postgres://postgres:dbpass@localhost:5432/db ./migrations -b
 ```
